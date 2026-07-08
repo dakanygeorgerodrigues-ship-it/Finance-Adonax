@@ -254,22 +254,26 @@ export default function TransactionsList({
   const handleExportCSV = () => {
     const headers = ['Descrição', 'Valor', 'Tipo', 'Categoria', 'Data', 'Conta', 'Situação'];
     const rows = filteredTransactions.map(t => [
-      t.description,
-      t.amount,
+      (t.description || '').replace(/"/g, '""'),
+      String(t.amount),
       t.type === 'income' ? 'Receita' : 'Despesa',
-      getCategoryDetails(t.category).name,
+      (getCategoryDetails(t.category).name || '').replace(/"/g, '""'),
       t.date,
-      getAccountName(t.account),
+      (getAccountName(t.account) || '').replace(/"/g, '""'),
       t.status === 'paid' ? 'Pago' : 'Pendente'
     ]);
 
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const csvRows = [headers, ...rows];
+    // Map each cell to be surrounded by quotes to handle quotes, semicolons or commas nicely
+    const csvContent = csvRows.map(row => row.map(val => `"${val}"`).join(';')).join('\n');
     
-    const encodedUri = encodeURI(csvContent);
+    // Add UTF-8 BOM so Excel opens accents correctly
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `organizze_relatorio_${currentMonth}.csv`);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `adonax_relatorio_${currentMonth}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

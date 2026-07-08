@@ -182,7 +182,7 @@ export default function Reports({
 
       const monthLabel = monthNamesPtFull[parseInt(monthNum) - 1];
       const periodText = `${monthLabel} de ${year}`;
-      const docDate = new Date().toLocaleDateString('pt-BR', {
+      const docDate = new Date().toLocaleString('pt-BR', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
