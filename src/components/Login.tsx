@@ -28,7 +28,7 @@ export default function Login({ onLogin }: LoginProps) {
     }
 
     if (!hasSupabaseConfig) {
-      onLogin({ email, user_metadata: { full_name: email.split('@')[0] } });
+      setError('A integração com o Supabase não está configurada nas variáveis de ambiente. Por favor, adicione as chaves no painel do seu projeto.');
       return;
     }
 
@@ -84,26 +84,6 @@ export default function Login({ onLogin }: LoginProps) {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleGuestLogin = () => {
-    // Limpar dados do visitante para vir zerado e forçar o tour
-    const guestKeys = [
-      'org_accounts_guest',
-      'org_transactions_guest',
-      'org_budgets_guest',
-      'org_goals_guest',
-      'org_card_invoices_guest',
-      'org_categories_guest',
-      'org_tour_completed_guest'
-    ];
-    guestKeys.forEach(key => localStorage.removeItem(key));
-
-    onLogin({ 
-      id: 'guest',
-      email: 'visitante@app.com', 
-      user_metadata: { full_name: 'Visitante' } 
-    });
   };
 
   return (
@@ -184,21 +164,6 @@ export default function Login({ onLogin }: LoginProps) {
             {isSignUp ? <UserPlus className="w-5 h-5" /> : <LogIn className="w-5 h-5" />}
             {loading ? 'Aguarde...' : (isSignUp ? 'Criar Conta' : 'Entrar')}
           </button>
-          
-          <div className="relative flex items-center py-2">
-            <div className="flex-grow border-t border-slate-900/10 dark:border-white/10"></div>
-            <span className="flex-shrink-0 mx-4 text-slate-500 dark:text-slate-400 text-xs font-semibold">OU</span>
-            <div className="flex-grow border-t border-slate-900/10 dark:border-white/10"></div>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleGuestLogin}
-            className="w-full bg-slate-900/5 dark:bg-white/5 hover:bg-slate-900/10 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <User className="w-5 h-5 text-indigo-400" />
-            Entrar como Visitante
-          </button>
         </form>
 
         <div className="mt-8 text-center text-xs font-semibold">
@@ -213,17 +178,6 @@ export default function Login({ onLogin }: LoginProps) {
             {isSignUp ? 'Fazer login' : 'Criar uma conta agora'}
           </button>
         </div>
-
-        {hasSupabaseConfig ? (
-          <div className="mt-6 pt-4 border-t border-slate-900/10 dark:border-white/10 text-center text-[10px] sm:text-xs text-emerald-600 dark:text-emerald-400 font-bold flex items-center justify-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Nuvem Ativa: Banco de Dados Supabase Conectado
-          </div>
-        ) : (
-          <div className="mt-6 pt-4 border-t border-slate-900/10 dark:border-white/10 text-center text-[10px] sm:text-xs text-amber-600 dark:text-amber-400 font-semibold leading-relaxed">
-            💡 Simulação Local: Conecte o Supabase nas variáveis de ambiente para salvar seus dados na nuvem. Passo a passo no painel de Perfil.
-          </div>
-        )}
       </motion.div>
     </div>
   );

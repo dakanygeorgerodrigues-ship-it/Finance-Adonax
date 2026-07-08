@@ -318,9 +318,9 @@ export default function Profile({ user, onUpdateUser, onLogout }: ProfileProps) 
                 Integrado
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs font-bold text-amber-600 dark:text-amber-400">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-xs font-bold text-rose-600 dark:text-rose-400">
                 <AlertTriangle className="w-3.5 h-3.5" />
-                Modo Local (Offline)
+                Sem Conexão (Chaves Pendentes)
               </span>
             )}
           </div>
@@ -387,13 +387,12 @@ export default function Profile({ user, onUpdateUser, onLogout }: ProfileProps) 
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-xl leading-relaxed text-xs text-slate-600 dark:text-slate-300 font-medium">
+            <div className="p-4 bg-rose-500/5 border border-rose-500/10 rounded-xl leading-relaxed text-xs text-slate-600 dark:text-slate-300 font-medium">
               <p className="mb-2">
-                O aplicativo está rodando atualmente no <span className="text-amber-600 dark:text-amber-400 font-bold">Modo de Simulação Local</span>. 
-                Seus dados de faturamento e finanças são salvos de forma rápida e segura no seu próprio navegador utilizando o <span className="font-mono">localStorage</span>.
+                A sincronização em nuvem e autenticação do aplicativo requerem uma conexão com o seu banco de dados <span className="text-rose-600 dark:text-rose-400 font-bold">Supabase</span>.
               </p>
               <p>
-                Para habilitar recursos avançados de <span className="font-bold text-indigo-500">sincronização em nuvem e login multi-dispositivo</span>, conecte seu próprio banco de dados do Supabase. É super simples e gratuito!
+                Configure suas chaves de acesso no arquivo <span className="font-mono">.env</span> ou nas configurações do seu ambiente para ativar o sistema e permitir o login de usuários.
               </p>
             </div>
 
@@ -430,7 +429,7 @@ export default function Profile({ user, onUpdateUser, onLogout }: ProfileProps) 
             </div>
 
             <div className="pt-2 p-3 bg-indigo-500/5 border border-indigo-500/10 rounded-xl text-indigo-600 dark:text-indigo-400 text-xs font-semibold leading-relaxed">
-              💡 <span className="font-bold">Migração Automática</span>: Assim que você ativar o Supabase e criar uma conta, todos os dados salvos localmente serão sincronizados automaticamente e importados para a nuvem! Você não perderá nenhum registro anterior.
+              💡 <span className="font-bold">Segurança Garantida</span>: Seus dados cadastrados e financeiros serão salvos com segurança de nível militar na nuvem Supabase assim que a configuração for concluída!
             </div>
           </div>
         )}

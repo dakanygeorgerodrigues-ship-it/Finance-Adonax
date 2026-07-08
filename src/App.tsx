@@ -940,19 +940,6 @@ export default function App() {
                 <span className="hidden md:inline">{isSyncing ? 'Sincronizando...' : 'Sincronizar'}</span>
               </button>
             )}
-            {user?.id === 'guest' && (
-              <button
-                onClick={() => {
-                  setUser(null);
-                  setIsLoggedIn(false);
-                }}
-                className="hidden sm:flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-lg shadow-indigo-500/20 cursor-pointer active:scale-95"
-                title="Criar conta para salvar seus dados"
-              >
-                <Sparkles className="w-4 h-4 text-adonax-gold" />
-                Criar Conta Grátis
-              </button>
-            )}
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
               className="w-10 h-10 rounded-full glass hover:bg-slate-900/5 dark:hover:bg-white/5 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors border border-slate-900/10 dark:border-white/10 cursor-pointer"
