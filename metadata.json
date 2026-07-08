@@ -1,0 +1,8 @@
+{
+  "name": "Adonax Finance",
+  "description": "Aplicativo completo de gestão de finanças pessoais inspirado no Organizze, com relatórios mensais detalhados, gráficos de gastos e sincronização bancária simulada.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

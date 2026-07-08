@@ -1,0 +1,195 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --color-adonax-indigo: #6366f1;
+  --color-adonax-purple: #8b5cf6;
+  --color-adonax-cyan: #06b6d4;
+  --color-adonax-gold: #f59e0b;
+  --color-adonax-dark: #040613;
+}
+
+:root {
+  --bg-color: #f8fafc;
+  --text-color: #0f172a;
+  
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(0, 0, 0, 0.05);
+  --glass-shadow: rgba(0, 0, 0, 0.05);
+  
+  --glass-hover-bg: rgba(255, 255, 255, 0.8);
+  --glass-hover-border: rgba(0, 0, 0, 0.1);
+  --glass-hover-shadow: rgba(0, 0, 0, 0.1);
+  
+  --glass-dark-bg: rgba(255, 255, 255, 0.4);
+  --glass-dark-border: rgba(0, 0, 0, 0.02);
+  --glass-dark-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+  
+  --glass-input-bg: rgba(255, 255, 255, 0.7);
+  --glass-input-border: rgba(0, 0, 0, 0.1);
+  --glass-input-color: #0f172a;
+  --glass-input-focus-bg: rgba(255, 255, 255, 1);
+  
+  --glass-modal-bg: rgba(255, 255, 255, 0.85);
+  --glass-modal-border: rgba(0, 0, 0, 0.1);
+  --glass-modal-shadow: 0 24px 64px rgba(0, 0, 0, 0.1);
+  
+  --mesh-1: #e0e7ff;
+  --mesh-2: #ede9fe;
+  --mesh-3: #ccfbf1;
+  --mesh-bg: #f8fafc;
+
+  --scroll-track: rgba(0, 0, 0, 0.02);
+  --scroll-thumb: rgba(0, 0, 0, 0.15);
+  --scroll-thumb-hover: rgba(0, 0, 0, 0.3);
+
+  --chart-tooltip-bg: rgba(255, 255, 255, 0.9);
+  --chart-tooltip-border: rgba(0, 0, 0, 0.1);
+  --chart-tooltip-label: #475569;
+}
+
+.dark {
+  --bg-color: #040613;
+  --text-color: #f8fafc;
+  
+  --glass-bg: rgba(99, 102, 241, 0.04);
+  --glass-border: rgba(99, 102, 241, 0.12);
+  --glass-shadow: rgba(0, 0, 0, 0.4);
+  
+  --glass-hover-bg: rgba(99, 102, 241, 0.08);
+  --glass-hover-border: rgba(99, 102, 241, 0.2);
+  --glass-hover-shadow: rgba(0, 0, 0, 0.5);
+  
+  --glass-dark-bg: rgba(4, 6, 19, 0.6);
+  --glass-dark-border: rgba(99, 102, 241, 0.06);
+  --glass-dark-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+  
+  --glass-input-bg: rgba(4, 6, 19, 0.45);
+  --glass-input-border: rgba(99, 102, 241, 0.15);
+  --glass-input-color: #f8fafc;
+  --glass-input-focus-bg: rgba(4, 6, 19, 0.65);
+  
+  --glass-modal-bg: rgba(4, 6, 19, 0.85);
+  --glass-modal-border: rgba(99, 102, 241, 0.18);
+  --glass-modal-shadow: 0 24px 64px rgba(0, 0, 0, 0.75);
+  
+  --mesh-1: #312e81;
+  --mesh-2: #4c1d95;
+  --mesh-3: #115e59;
+  --mesh-bg: #040613;
+
+  --scroll-track: rgba(255, 255, 255, 0.01);
+  --scroll-thumb: rgba(99, 102, 241, 0.25);
+  --scroll-thumb-hover: rgba(99, 102, 241, 0.4);
+
+  --chart-tooltip-bg: rgba(4, 6, 19, 0.9);
+  --chart-tooltip-border: rgba(99, 102, 241, 0.2);
+  --chart-tooltip-label: #a5b4fc;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+/* Glassmorphism Styles */
+.glass {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(16px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 8px 32px 0 var(--glass-shadow) !important;
+}
+
+.glass-hover {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-hover:hover {
+  background: var(--glass-hover-bg) !important;
+  border-color: var(--glass-hover-border) !important;
+  box-shadow: 0 12px 40px 0 var(--glass-hover-shadow) !important;
+  transform: translateY(-2px);
+}
+
+.glass-dark {
+  background: var(--glass-dark-bg) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid var(--glass-dark-border) !important;
+  box-shadow: var(--glass-dark-shadow) !important;
+}
+
+.glass-input {
+  background: var(--glass-input-bg) !important;
+  border: 1px solid var(--glass-input-border) !important;
+  color: var(--glass-input-color) !important;
+  transition: all 0.2s ease;
+}
+.glass-input:focus {
+  background: var(--glass-input-focus-bg) !important;
+  border-color: rgba(20, 184, 166, 0.5) !important;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15) !important;
+  outline: none;
+}
+
+.glass-modal {
+  background: var(--glass-modal-bg) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border: 1px solid var(--glass-modal-border) !important;
+  box-shadow: var(--glass-modal-shadow) !important;
+}
+
+/* Background Mesh */
+.bg-mesh {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background: 
+    radial-gradient(circle at 15% 15%, var(--mesh-1) 0%, transparent 45%),
+    radial-gradient(circle at 85% 20%, var(--mesh-2) 0%, transparent 45%),
+    radial-gradient(circle at 50% 85%, var(--mesh-3) 0%, transparent 50%);
+  background-color: var(--mesh-bg);
+  pointer-events: none;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--scroll-track);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover);
+}
+
+/* Recharts customization to make it blend with dark glass */
+.recharts-default-tooltip {
+  background-color: var(--chart-tooltip-bg) !important;
+  border: 1px solid var(--chart-tooltip-border) !important;
+  border-radius: 12px !important;
+  backdrop-filter: blur(8px) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+}
+.recharts-tooltip-label {
+  color: var(--chart-tooltip-label) !important;
+  font-weight: 600 !important;
+}
