@@ -213,6 +213,17 @@ export default function Login({ onLogin }: LoginProps) {
             {isSignUp ? 'Fazer login' : 'Criar uma conta agora'}
           </button>
         </div>
+
+        {hasSupabaseConfig ? (
+          <div className="mt-6 pt-4 border-t border-slate-900/10 dark:border-white/10 text-center text-[10px] sm:text-xs text-emerald-600 dark:text-emerald-400 font-bold flex items-center justify-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Nuvem Ativa: Banco de Dados Supabase Conectado
+          </div>
+        ) : (
+          <div className="mt-6 pt-4 border-t border-slate-900/10 dark:border-white/10 text-center text-[10px] sm:text-xs text-amber-600 dark:text-amber-400 font-semibold leading-relaxed">
+            💡 Simulação Local: Conecte o Supabase nas variáveis de ambiente para salvar seus dados na nuvem. Passo a passo no painel de Perfil.
+          </div>
+        )}
       </motion.div>
     </div>
   );

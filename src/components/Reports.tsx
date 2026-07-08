@@ -28,9 +28,11 @@ import {
   Calendar,
   Layers,
   Activity,
-  Info
+  Info,
+  FileDown
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { jsPDF } from 'jspdf';
 
 interface ReportsProps {
   transactions: Transaction[];
@@ -163,8 +165,387 @@ export default function Reports({
     return [value, ''];
   };
 
+  const [year, monthNum] = currentMonth.split('-');
+  const monthNamesPtFull = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
+  const fullMonthLabel = `${monthNamesPtFull[parseInt(monthNum) - 1]} de ${year}`;
+
+  const exportToPDF = () => {
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const monthLabel = monthNamesPtFull[parseInt(monthNum) - 1];
+      const periodText = `${monthLabel} de ${year}`;
+      const docDate = new Date().toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      let pageCount = 1;
+
+      // Header Helper
+      const drawHeader = (pageNum: number) => {
+        // Top accent bar
+        doc.setFillColor(30, 41, 59); // slate-800
+        doc.rect(15, 12, 180, 2, 'F');
+
+        // Brand name
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.setTextColor(30, 41, 59);
+        doc.text('ADONAX Finance PRO', 15, 22);
+
+        // Document subtitle
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(100, 116, 139);
+        doc.text('CONTROLE FINANCEIRO INTELIGENTE', 15, 27);
+
+        // Period right-aligned
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(30, 41, 59);
+        doc.text(`Período: ${periodText.toUpperCase()}`, 195, 22, { align: 'right' });
+
+        // Generation date
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(148, 163, 184);
+        doc.text(`Gerado em: ${docDate}`, 195, 27, { align: 'right' });
+
+        // Divider
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.5);
+        doc.line(15, 31, 195, 31);
+      };
+
+      // Footer Helper
+      const drawFooter = (pageNum: number) => {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(148, 163, 184);
+        doc.text(
+          'Adonax Finance PRO - Relatório de Uso Pessoal',
+          15,
+          285
+        );
+        doc.text(
+          `Página ${pageNum}`,
+          195,
+          285,
+          { align: 'right' }
+        );
+      };
+
+      // Initialize Page 1
+      drawHeader(pageCount);
+
+      let y = 40;
+
+      // --- SECTION 1: RESUMO DO PERÍODO ---
+      doc.setFillColor(248, 250, 252); // Soft light background slate-50
+      doc.rect(15, y, 180, 26, 'F');
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(15, 23, 42);
+      doc.text('RESUMO FINANCEIRO DO MÊS', 20, y + 6);
+
+      // Key Metrics
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(71, 85, 105);
+      doc.text('Receitas do Mês:', 20, y + 13);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(16, 185, 129); // emerald-600
+      doc.text(formatCurrency(totalIncome), 52, y + 13);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(71, 85, 105);
+      doc.text('Despesas do Mês:', 20, y + 19);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(239, 68, 68); // rose-600
+      doc.text(formatCurrency(totalExpense), 52, y + 19);
+
+      // Net savings
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(71, 85, 105);
+      doc.text('Saldo Sobrante:', 110, y + 13);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(netSavings >= 0 ? 13 : 225, netSavings >= 0 ? 148 : 29, netSavings >= 0 ? 136 : 72); // teal-600 or rose-600
+      doc.text(formatCurrency(netSavings), 140, y + 13);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(71, 85, 105);
+      doc.text('Taxa de Poupança:', 110, y + 19);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(71, 85, 105);
+      doc.text(`${savingsRate}% da renda economizada`, 142, y + 19);
+
+      y += 34;
+
+      // --- SECTION 2: DESPESAS POR CATEGORIA ---
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(15, 23, 42);
+      doc.text('DESPESAS POR CATEGORIA', 15, y);
+      
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.3);
+      doc.line(15, y + 2, 195, y + 2);
+
+      y += 7;
+
+      if (pieDataWithPercentage.length === 0) {
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(9);
+        doc.setTextColor(148, 163, 184);
+        doc.text('Nenhuma despesa registrada neste período.', 15, y);
+        y += 10;
+      } else {
+        // Draw category table header
+        doc.setFillColor(241, 245, 249);
+        doc.rect(15, y, 180, 6, 'F');
+        
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(71, 85, 105);
+        doc.text('CATEGORIA', 18, y + 4.5);
+        doc.text('VALOR GASTO', 120, y + 4.5, { align: 'right' });
+        doc.text('PARTICIPAÇÃO %', 190, y + 4.5, { align: 'right' });
+
+        y += 6;
+
+        pieDataWithPercentage.forEach((item) => {
+          // Check page space
+          if (y > 260) {
+            drawFooter(pageCount);
+            doc.addPage();
+            pageCount++;
+            drawHeader(pageCount);
+            y = 40;
+            // Redraw table header on new page
+            doc.setFillColor(241, 245, 249);
+            doc.rect(15, y, 180, 6, 'F');
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(8);
+            doc.setTextColor(71, 85, 105);
+            doc.text('CATEGORIA', 18, y + 4.5);
+            doc.text('VALOR GASTO', 120, y + 4.5, { align: 'right' });
+            doc.text('PARTICIPAÇÃO %', 190, y + 4.5, { align: 'right' });
+            y += 6;
+          }
+
+          // Row line
+          doc.setDrawColor(241, 245, 249);
+          doc.line(15, y + 6, 195, y + 6);
+
+          // Content
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(8.5);
+          doc.setTextColor(51, 65, 85);
+          doc.text(item.name, 18, y + 4.5);
+          doc.text(formatCurrency(item.value), 120, y + 4.5, { align: 'right' });
+          doc.setFont('helvetica', 'bold');
+          doc.text(`${item.percentage}%`, 190, y + 4.5, { align: 'right' });
+
+          y += 6;
+        });
+
+        // Category total row
+        doc.setFillColor(248, 250, 252);
+        doc.rect(15, y, 180, 6, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(30, 41, 59);
+        doc.text('TOTAL DE DESPESAS', 18, y + 4.5);
+        doc.text(formatCurrency(totalPieExpense), 120, y + 4.5, { align: 'right' });
+        doc.text('100%', 190, y + 4.5, { align: 'right' });
+
+        y += 12;
+      }
+
+      // --- SECTION 3: LISTA DE LANÇAMENTOS DO MÊS ---
+      // Check page space
+      if (y > 230) {
+        drawFooter(pageCount);
+        doc.addPage();
+        pageCount++;
+        drawHeader(pageCount);
+        y = 40;
+      }
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(15, 23, 42);
+      doc.text('HISTÓRICO DETALHADO DE LANÇAMENTOS', 15, y);
+      
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.3);
+      doc.line(15, y + 2, 195, y + 2);
+
+      y += 7;
+
+      const sortedTxs = [...currentMonthTransactions].sort((a, b) => b.date.localeCompare(a.date));
+
+      if (sortedTxs.length === 0) {
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(9);
+        doc.setTextColor(148, 163, 184);
+        doc.text('Nenhum lançamento encontrado neste período.', 15, y);
+        y += 10;
+      } else {
+        // Draw transactions table header
+        doc.setFillColor(241, 245, 249);
+        doc.rect(15, y, 180, 6, 'F');
+        
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(71, 85, 105);
+        doc.text('DATA', 18, y + 4.5);
+        doc.text('DESCRIÇÃO', 38, y + 4.5);
+        doc.text('CATEGORIA', 105, y + 4.5);
+        doc.text('STATUS', 148, y + 4.5, { align: 'center' });
+        doc.text('VALOR', 190, y + 4.5, { align: 'right' });
+
+        y += 6;
+
+        sortedTxs.forEach((tx) => {
+          // Check page space
+          if (y > 260) {
+            drawFooter(pageCount);
+            doc.addPage();
+            pageCount++;
+            drawHeader(pageCount);
+            y = 40;
+            // Redraw table header
+            doc.setFillColor(241, 245, 249);
+            doc.rect(15, y, 180, 6, 'F');
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(8);
+            doc.setTextColor(71, 85, 105);
+            doc.text('DATA', 18, y + 4.5);
+            doc.text('DESCRIÇÃO', 38, y + 4.5);
+            doc.text('CATEGORIA', 105, y + 4.5);
+            doc.text('STATUS', 148, y + 4.5, { align: 'center' });
+            doc.text('VALOR', 190, y + 4.5, { align: 'right' });
+            y += 6;
+          }
+
+          // Row line
+          doc.setDrawColor(241, 245, 249);
+          doc.line(15, y + 6, 195, y + 6);
+
+          // Format Date (YYYY-MM-DD -> DD/MM)
+          const [,, dayPart] = tx.date.split('-');
+          const dateLabel = `${dayPart}/${monthNum}`;
+
+          // Format status
+          const statusLabel = tx.status === 'paid' ? 'Efetivado' : 'Pendente';
+
+          // Get category name
+          const catName = categories.find(c => c.id === tx.category)?.name || 'Sem Categoria';
+
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(8);
+          doc.setTextColor(51, 65, 85);
+
+          // Draw Row values
+          doc.text(dateLabel, 18, y + 4.5);
+          
+          // Truncate description to fit nicely
+          const rawDesc = tx.description || 'Lançamento';
+          const truncatedDesc = rawDesc.length > 32 ? rawDesc.slice(0, 30) + '..' : rawDesc;
+          doc.text(truncatedDesc, 38, y + 4.5);
+          
+          doc.text(catName, 105, y + 4.5);
+
+          // Status with colored text
+          doc.setFont('helvetica', tx.status === 'paid' ? 'normal' : 'bold');
+          doc.setTextColor(tx.status === 'paid' ? 100 : 217, tx.status === 'paid' ? 116 : 119, tx.status === 'paid' ? 139 : 6);
+          doc.text(statusLabel, 148, y + 4.5, { align: 'center' });
+
+          // Amount with colored text
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(tx.type === 'income' ? 16 : 225, tx.type === 'income' ? 185 : 29, tx.type === 'income' ? 129 : 72);
+          const prefix = tx.type === 'income' ? '+' : '-';
+          doc.text(`${prefix} ${formatCurrency(tx.amount)}`, 190, y + 4.5, { align: 'right' });
+
+          y += 6;
+        });
+      }
+
+      // Final signature on the last page if space allows, otherwise on a new page or slightly moved
+      if (y > 250) {
+        drawFooter(pageCount);
+        doc.addPage();
+        pageCount++;
+        drawHeader(pageCount);
+        y = 40;
+      }
+
+      // Decorative end line
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.5);
+      doc.line(15, y + 5, 195, y + 5);
+
+      // Final disclaimer
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(7.5);
+      doc.setTextColor(148, 163, 184);
+      doc.text(
+        'Este relatório é gerado automaticamente a partir dos lançamentos inseridos e sincronizados no Adonax Finance PRO.',
+        15,
+        y + 10
+      );
+      doc.text(
+        'Fique firme nos seus objetivos financeiros! Use os recursos de planejamento e faturamento com sabedoria.',
+        15,
+        y + 14
+      );
+
+      drawFooter(pageCount);
+
+      // Save File
+      const filename = `Relatorio-Financeiro-${currentMonth}.pdf`;
+      doc.save(filename);
+    } catch (err) {
+      console.error('[Export PDF Error]', err);
+      alert('Não foi possível exportar o PDF. Por favor, tente novamente.');
+    }
+  };
+
   return (
     <div className="space-y-6">
+      
+      {/* Cabeçalho de Relatórios com Exportação de PDF */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-slate-900/5 dark:bg-white/5 rounded-2xl p-5 border border-slate-900/10 dark:border-white/10" id="reports-header-section">
+        <div>
+          <h2 className="text-lg md:text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2 font-display">
+            <Activity className="w-5 h-5 text-indigo-500 dark:text-cyan-400" /> Relatório Financeiro Mensal
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium leading-relaxed">
+            Resumos, análise de faturamento por categoria e listagem consolidada do período de <span className="text-indigo-600 dark:text-cyan-300 font-bold">{fullMonthLabel}</span>.
+          </p>
+        </div>
+        <button
+          onClick={exportToPDF}
+          className="flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs px-5 py-3 rounded-xl transition-all shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/35 cursor-pointer active:scale-95 shrink-0"
+          id="btn-export-pdf-report"
+        >
+          <FileDown className="w-4 h-4 text-white" />
+          <span>Salvar PDF Mensal</span>
+        </button>
+      </div>
       
       {/* 3 Cards de Indicadores de Desempenho do Mês */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

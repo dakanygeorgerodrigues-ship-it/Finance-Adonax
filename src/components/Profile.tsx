@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { User, Mail, Phone, FileText, Save, X, Camera, Sparkles } from 'lucide-react';
+import { User, Mail, Phone, FileText, Save, X, Camera, Sparkles, Database, Cloud, CheckCircle2, AlertTriangle, ExternalLink, RefreshCw, Key, ShieldCheck } from 'lucide-react';
 import { supabase, hasSupabaseConfig } from '../lib/supabase';
 
 interface ProfileProps {
@@ -14,6 +14,30 @@ export default function Profile({ user, onUpdateUser, onLogout }: ProfileProps) 
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  
+  const [testingConn, setTestingConn] = useState(false);
+  const [connStatus, setConnStatus] = useState<'success' | 'error' | null>(null);
+  const [connError, setConnError] = useState('');
+
+  const handleTestConnection = async () => {
+    if (!hasSupabaseConfig) return;
+    setTestingConn(true);
+    setConnStatus(null);
+    setConnError('');
+    try {
+      const { error } = await supabase.from('categories').select('id').limit(1);
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      setConnStatus('success');
+    } catch (err: any) {
+      console.error('[Supabase Test Connection Error]', err);
+      setConnStatus('error');
+      setConnError(err.message || 'Erro ao conectar. Verifique as variáveis de ambiente e as políticas de RLS.');
+    } finally {
+      setTestingConn(false);
+    }
+  };
 
   const [formData, setFormData] = useState({
     name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || '',
@@ -268,6 +292,148 @@ export default function Profile({ user, onUpdateUser, onLogout }: ProfileProps) 
             </div>
           )}
         </form>
+      </motion.div>
+
+      {/* PAINEL DE INTEGRAÇÃO SUPABASE */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="glass rounded-2xl p-6 sm:p-8 border border-slate-900/10 dark:border-white/10"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-900/10 dark:border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 dark:text-cyan-400 shrink-0 font-bold">
+              <Database className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white font-display">Conexão com Supabase</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Status de sincronização, banco de dados e backup em nuvem.</p>
+            </div>
+          </div>
+          <div className="flex shrink-0">
+            {hasSupabaseConfig ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Integrado
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs font-bold text-amber-600 dark:text-amber-400">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                Modo Local (Offline)
+              </span>
+            )}
+          </div>
+        </div>
+
+        {hasSupabaseConfig ? (
+          <div className="space-y-6">
+            <div className="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-xl">
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                Seu aplicativo está conectado diretamente ao banco de dados <span className="text-emerald-600 dark:text-emerald-400 font-bold">Supabase</span>. 
+                Sua conta de e-mail está registrada e todas as suas categorias, contas, lançamentos, faturas, orçamentos e metas são salvos na nuvem em tempo real!
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl bg-slate-900/5 dark:bg-white/5 border border-slate-900/10 dark:border-white/10">
+                <span className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">PROJETO SUPABASE URL</span>
+                <span className="text-xs font-mono font-medium text-slate-800 dark:text-slate-200">
+                  {import.meta.env.VITE_SUPABASE_URL ? import.meta.env.VITE_SUPABASE_URL.replace(/(.{12}).*(.{6})/, '$1xxxxxxxx$2') : '---'}
+                </span>
+              </div>
+              <div className="p-4 rounded-xl bg-slate-900/5 dark:bg-white/5 border border-slate-900/10 dark:border-white/10">
+                <span className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">CHAVE ANÔNIMA (ANON KEY)</span>
+                <span className="text-xs font-mono font-medium text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                  <Key className="w-3.5 h-3.5 text-indigo-400" />
+                  •••••••••••••••••{import.meta.env.VITE_SUPABASE_ANON_KEY ? import.meta.env.VITE_SUPABASE_ANON_KEY.slice(-6) : 'xxxxxx'}
+                </span>
+              </div>
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <button
+                type="button"
+                onClick={handleTestConnection}
+                disabled={testingConn}
+                className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-500/15 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${testingConn ? 'animate-spin' : ''}`} />
+                {testingConn ? 'Testando Conexão...' : 'Testar Conexão com Banco'}
+              </button>
+              
+              <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-1">
+                <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+                Segurança ponta a ponta com Row Level Security (RLS) habilitado.
+              </div>
+            </div>
+
+            {connStatus === 'success' && (
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/25 rounded-xl text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                Conexão estabelecida com sucesso! O banco de dados está respondendo perfeitamente.
+              </div>
+            )}
+
+            {connStatus === 'error' && (
+              <div className="p-3 bg-rose-500/10 border border-rose-500/25 rounded-xl text-rose-600 dark:text-rose-400 text-xs font-bold space-y-1">
+                <p className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
+                  Falha ao testar conexão.
+                </p>
+                <p className="font-mono text-[11px] font-normal opacity-90 pl-6 leading-relaxed">{connError}</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-xl leading-relaxed text-xs text-slate-600 dark:text-slate-300 font-medium">
+              <p className="mb-2">
+                O aplicativo está rodando atualmente no <span className="text-amber-600 dark:text-amber-400 font-bold">Modo de Simulação Local</span>. 
+                Seus dados de faturamento e finanças são salvos de forma rápida e segura no seu próprio navegador utilizando o <span className="font-mono">localStorage</span>.
+              </p>
+              <p>
+                Para habilitar recursos avançados de <span className="font-bold text-indigo-500">sincronização em nuvem e login multi-dispositivo</span>, conecte seu próprio banco de dados do Supabase. É super simples e gratuito!
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">Como integrar o Supabase passo a passo:</h4>
+              
+              <ol className="text-xs text-slate-600 dark:text-slate-400 space-y-3 font-semibold list-decimal pl-4">
+                <li className="leading-relaxed">
+                  Crie um projeto gratuito em{' '}
+                  <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-cyan-400 underline inline-flex items-center gap-0.5 hover:opacity-80">
+                    Supabase <ExternalLink className="w-3 h-3" />
+                  </a>.
+                </li>
+                <li className="leading-relaxed">
+                  Copie as tabelas e politicas executando o arquivo SQL localizado em{' '}
+                  <span className="font-mono bg-slate-900/5 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 px-1.5 py-0.5 rounded text-[11px] text-indigo-600 dark:text-cyan-400">
+                    /supabase/migrations/20260707000000_initial_schema.sql
+                  </span>{' '}
+                  no Editor de SQL do painel do seu Supabase.
+                </li>
+                <li className="leading-relaxed">
+                  Configure as seguintes variáveis de ambiente no seu arquivo{' '}
+                  <span className="font-mono bg-slate-900/5 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 px-1.5 py-0.5 rounded text-[11px]">.env</span>{' '}
+                  ou nas configurações (Secrets) do seu workspace:
+                  <div className="mt-2 space-y-1 font-mono text-[11px] bg-slate-950 text-slate-300 p-2.5 rounded-lg border border-slate-900">
+                    <div>VITE_SUPABASE_URL="sua-url-do-supabase"</div>
+                    <div>VITE_SUPABASE_ANON_KEY="sua-chave-anonima"</div>
+                  </div>
+                </li>
+                <li className="leading-relaxed">
+                  Reinicie o servidor de desenvolvimento para aplicar as novas chaves.
+                </li>
+              </ol>
+            </div>
+
+            <div className="pt-2 p-3 bg-indigo-500/5 border border-indigo-500/10 rounded-xl text-indigo-600 dark:text-indigo-400 text-xs font-semibold leading-relaxed">
+              💡 <span className="font-bold">Migração Automática</span>: Assim que você ativar o Supabase e criar uma conta, todos os dados salvos localmente serão sincronizados automaticamente e importados para a nuvem! Você não perderá nenhum registro anterior.
+            </div>
+          </div>
+        )}
       </motion.div>
     </div>
   );
